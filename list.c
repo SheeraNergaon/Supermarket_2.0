@@ -55,7 +55,7 @@ NODE* L_insert(NODE* pNode, DATA Value)
 // Input:	pointer to the node BEFORE the node to be deleted 
 // Output:	TRUE if succeeded
 //////////////////////////////////////////////////////////////
-BOOL L_delete(NODE* pNode, void(*freeValue)(Data))
+BOOL L_delete(NODE* pNode, void(*freeValue)(void* Data))
 {
 	NODE* tmp;
 	if (!pNode)

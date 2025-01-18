@@ -52,6 +52,8 @@ int	 addItemToCart(ShoppingCart* pCart, const char* barcode, float price, int co
 	return 1;
 }
 
+
+
 float	printShoppingCart(const ShoppingCart* pCart){ // we will need to change anyway according to club member
 
 	float price = 0;
