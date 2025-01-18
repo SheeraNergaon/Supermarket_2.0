@@ -3,62 +3,60 @@
 #include <string.h>
 #include "ShoppingCart.h"
 #include "General.h"
+#include "list.h"
+
 
 void	initCart(ShoppingCart* pCart)
 {
-	pCart->count = 0;
-	pCart->itemArr = NULL;
+	L_init(&(pCart->items));
 }
 
 float	getTotalPrice(const ShoppingCart* pCart)
 {
+	NODE* current = &(pCart->items.head);
+	current = current->next;
 	float price = 0;
-	ShoppingItem* pItem;
-	for (int i = 0; i < pCart->count; i++)
-	{
-		pItem = pCart->itemArr[i];
-		price += (pItem->price * pItem->count);
+	while (current) {
+		price += ((ShoppingItem*)current->key)->price * ((ShoppingItem*)current->key)->count;
+		current = current->next;
 	}
 	return price;
 }
 
-int		addItemToCart(ShoppingCart* pCart, const char* barcode, float price, int count)
+int	 addItemToCart(ShoppingCart* pCart, const char* barcode, float price, int count)
 {
-	ShoppingItem* pItem = getItemByBarocde(pCart, barcode);
-	if (!pItem) //new item
+	NODE* prev = &(pCart->items.head);
+	NODE* current = prev->next;
+	ShoppingItem* newItem;
+
+	while (current != NULL && strcmp(((ShoppingItem*)current->key)->barcode, barcode) < 0)
 	{
-		pItem = createItem(barcode, price, count);
-		if (!pItem)
-			return 0;
-
-		ShoppingItem** tempArr = (ShoppingItem**)realloc(pCart->itemArr, (pCart->count + 1) * sizeof(ShoppingItem*));
-		if (!tempArr) {
-			freeShoppingCart(pCart);
-			return 0;
-		}
-		pCart->itemArr = tempArr;
-
-		pCart->itemArr[pCart->count] = pItem;
-		pCart->count++;
-
+		prev = current;
+		current = current->next;
 	}
-	else {
-		pItem->count += count;
+	if (current != NULL && strcmp(((ShoppingItem*)current->key)->barcode, barcode) == 0)
+	{
+		((ShoppingItem*)current->key)->count += count;
+		return 1;
+	}
+
+	newItem = createItem(barcode, price, count);
+	if (!newItem)
+		return 0;
+
+	if (!L_insert(prev, newItem))
+	{
+		free(newItem);
+		return 0;
 	}
 	return 1;
 }
 
-float	printShoppingCart(const ShoppingCart* pCart)
-{
-	ShoppingItem* pItem;
-	float price = 0;
-	for (int i = 0; i < pCart->count; i++)
-	{
-		pItem = pCart->itemArr[i];
-		printItem(pItem);
-		price += (pItem->price * pItem->count);
-	}
+float	printShoppingCart(const ShoppingCart* pCart){ // we will need to change anyway according to club member
 
+	float price = 0;
+	L_print(&(pCart->items), printItem);
+	price = getTotalPrice(pCart);
 	printf("Total bill to pay: %.2f\n", price);
 	return price;
 }
@@ -67,18 +65,20 @@ float	printShoppingCart(const ShoppingCart* pCart)
 
 ShoppingItem*	getItemByBarocde(ShoppingCart* pCart, const char* barcode)
 {
-	for (int i = 0; i < pCart->count; i++)
+	NODE* current = &(pCart->items.head);
+	current = current->next;
+	while (current)
 	{
-		if (strcmp(pCart->itemArr[i]->barcode,barcode) == 0)
-			return pCart->itemArr[i];
+		if (strcmp(((ShoppingItem*)current->key)->barcode, barcode) == 0)
+			return (ShoppingItem*)current->key;
+		current = current->next;
 	}
 	return NULL;
 }
 
-void	freeShoppingCart(ShoppingCart* pCart)
+void freeShoppingCart(ShoppingCart* pCart)
 {
-	for (int i = 0; i < pCart->count; i++)
-		free(pCart->itemArr[i]);
+	if (!pCart) return;
+	L_free(&(pCart->items), NULL);  // Pass NULL since ShoppingItem does not need extra freeing
 
-	free(pCart->itemArr);
 }
