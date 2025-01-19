@@ -111,47 +111,79 @@ int		isBarcodeUnique(const SuperMarket* pMarket, const char* barcode)
 	return 1; // Barcode is unique
 }
 
+
 int isCustomerIdUnique(const SuperMarket* pMarket, const char* id)
 {
+
 	for (int i = 0; i < pMarket->customerCount; i++)
 	{
-		if (strcmp(pMarket->customerArr[i].id, id) == 0)
-		{
+
+		const char* currentId;
+		if (pMarket->customerArr[i].type == MEMBER) {
+			const ClubMember* member = (const ClubMember*)&(pMarket->customerArr[i]);
+			currentId = member->customer.id;
+		}
+
+		else {
+			currentId = pMarket->customerArr[i].id;
+		}
+
+		if (strcmp(currentId, id) == 0) {
 			printf("ID %s is not unique\n", id);
-			return 0; // ID is not unique
+			return 0;
 		}
 	}
-	return 1; // ID is unique
+	return 1;
 }
+
+
 
 int		addCustomer(SuperMarket* pMarket)
 {
-	Customer cust = { 0 };
+	// Allocate enough space for either type
+	ClubMember tempMember = { 0 };  // Use ClubMember to ensure enough space
+	Customer* pCust = (Customer*)&tempMember;  // Access it as a Customer
+	enum CustomerType type = getCustomerType();
 
 	do {
-		freeCustomer(&cust);
-		if (!initCustomer(&cust))
+		freeCustomer(pCust);
+		if (!initCustomer(pCust, type))
 		{
-			freeCustomer(&cust);
+			freeCustomer(pCust);
 			return 0;
 		}
-	} while (!isCustomerIdUnique(pMarket, cust.id));
+	} while (!isCustomerIdUnique(pMarket, pCust->id));
 
-	if (isCustomerInMarket(pMarket, &cust))
+	if (isCustomerInMarket(pMarket, pCust))
 	{
 		printf("This customer already in market\n");
-		free(cust.name);
+		free(pCust->name);
 		return 0;
 	}
+	// Allocate appropriate memory size based on customer type
+	size_t newSize;
+	if (type == MEMBER) {
+		newSize = (pMarket->customerCount + 1) * sizeof(ClubMember);
+	} else {
+		newSize = (pMarket->customerCount + 1) * sizeof(Customer);
+	}
 
-	pMarket->customerArr = (Customer*)safeRealloc(pMarket->customerArr, (pMarket->customerCount + 1) * sizeof(Customer));
-	if (!pMarket->customerArr)
+	Customer* temp = (Customer*)safeRealloc(pMarket->customerArr, newSize);
+	if (!temp)
 	{
-		free(cust.name);
+		free(pCust->name);
 		return 0;
 	}
+	pMarket->customerArr = temp;
 
-	pMarket->customerArr[pMarket->customerCount] = cust;
+	// Copy customer data, being careful with member data if applicable
+	if (type == MEMBER) {
+		ClubMember* pNewMember = (ClubMember*)&(pMarket->customerArr[pMarket->customerCount]);
+		*pNewMember = tempMember;
+	} else {
+		pMarket->customerArr[pMarket->customerCount] = *pCust;
+	}
+
 	pMarket->customerCount++;
 	return 1;
 }
@@ -454,4 +486,22 @@ Customer* FindCustomerById(SuperMarket* pMarket, const char* id)
 			return &pMarket->customerArr[i];
 	}
 	return  NULL;
+}
+
+
+// Allocates appropriate memory based on customer type
+int allocateCustomerMemory(SuperMarket* pMarket, enum CustomerType type) {
+	size_t newSize;
+	if (type == MEMBER) {
+		newSize = (pMarket->customerCount + 1) * sizeof(ClubMember);
+	} else {
+		newSize = (pMarket->customerCount + 1) * sizeof(Customer);
+	}
+
+	Customer* temp = (Customer*)safeRealloc(pMarket->customerArr, newSize);
+	if (!temp)
+		return 0;
+
+	pMarket->customerArr = temp;
+	return 1;
 }
