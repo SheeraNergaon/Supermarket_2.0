@@ -25,7 +25,8 @@ BOOL L_init(LIST* pList);					// create new list
 
 NODE* L_insert(NODE* pNode, DATA Value);	// add new node after *pNode
 
-BOOL L_delete(NODE* pNode,void(*freeValue)(Data));					// erase node after *pNode
+BOOL L_delete(NODE* pNode,void(*freeValue)(void* Data));					// erase node after *pNode
+
 
 const NODE* L_find(const NODE* pNode, DATA Value,int (*compare)(const DATA,const DATA));		// return a pointer to the node 
 

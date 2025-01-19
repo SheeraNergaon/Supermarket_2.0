@@ -8,5 +8,5 @@ typedef struct
 	int			count;
 }ShoppingItem;
 
-void			printItem(const ShoppingItem* pItem);
+void			printItem(void* data);
 ShoppingItem*	createItem(const char* barcode, float price, int count);

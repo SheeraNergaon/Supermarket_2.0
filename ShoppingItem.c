@@ -5,9 +5,12 @@
 #include  "ShoppingItem.h"
 
 
-void	printItem(const ShoppingItem* pItem)
-{
-	printf("Item %s count %d price per item %.2f\n", pItem->barcode, pItem->count, pItem->price);
+void printItem(void* data) {
+	const ShoppingItem* item = (ShoppingItem*)data;
+	printf("Barcode: %-13s Price: %6.2f  Count: %3d\n",
+		   item->barcode,
+		   item->price,
+		   item->count);
 }
 
 ShoppingItem*	createItem(const char* barcode, float price, int count)
