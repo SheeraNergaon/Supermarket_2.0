@@ -5,12 +5,28 @@
 #define NAMES_SEP " "
 #define NAME_PARTS_SEP "- "
 
+enum Discount {
+
+};
+
+enum CustomerType {
+	REGULAR,
+	MEMBER
+};
+
 typedef struct
 {
 	char*			id;
 	char*			name;
 	ShoppingCart*	pCart;
+	enum CustomerType type;
 }Customer;
+
+typedef struct {
+	Customer customer;
+	int totalMonths;
+	float discount;
+}ClubMember;
 
 int		initCustomer(Customer* pCustomer);
 void	getCustomerID(Customer* pCustomer);
@@ -28,6 +44,13 @@ void	pay(Customer* pCustomer);
 void	cancelShopping(Customer* pCustomer);
 
 void	freeCustomer(Customer* pCust);
+
+
+void setCustomerType(Customer* pCustomer);
+void setTotalMonths(ClubMember* pMember);
+void setDiscount(ClubMember* pMember);
+int isValidMonths(char months[], int size);
+void setDiscount(ClubMember* pMember);
 
 
 

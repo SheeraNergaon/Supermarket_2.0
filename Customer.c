@@ -26,9 +26,84 @@ int	initCustomer(Customer* pCustomer)
 	pCustomer->pCart = NULL;
 
 	getCustomerID(pCustomer);
+    setCustomerType(pCustomer);
+    if (pCustomer->type == MEMBER){
+      ClubMember* pMember = (ClubMember*)pCustomer;
+      setTotalMonths(pMember);
+      setDiscount(pMember);
+      }
 
 	return 1;
 	
+}
+
+void setCustomerType(Customer* pCustomer)
+{
+ 	 char choice;
+     do {
+       	printf("Are you a club member? enter Y,y if yes, and N,n if no:\n");
+     	choice = getchar();
+     	while ( getchar() != '\n' );
+     	switch (choice) {
+       	case 'N':
+        case 'n':
+         	pCustomer->type = REGULAR;
+            break;
+       	case 'Y':
+        case 'y':
+         	pCustomer->type = MEMBER;
+     		ClubMember* pMember = (ClubMember*)pCustomer;
+         	break;
+       	default:
+         	printf("Invalid input, try again!\n");
+		}
+     } while (choice != 'N' && choice != 'n' && choice != 'Y' && choice != 'y');
+}
+
+void setTotalMonths(ClubMember* pMember) {
+	char temp[10];
+	char* newlinePos;
+	do {
+		printf("Enter total months of membership: ");
+		fgets(temp, sizeof(temp), stdin);
+
+		// Clear buffer if input was too long
+		if (!strchr(temp, '\n'))
+			while (getchar() != '\n');
+
+		// Remove newline
+		newlinePos = strchr(temp, '\n');
+		if (newlinePos)
+			*newlinePos = '\0';
+
+	} while (!isValidMonths(temp, strlen(temp)));
+
+	pMember->totalMonths = atoi(temp);
+}
+
+
+int isValidMonths(char months[], int size){
+	for (int i = 0; i < size; i++){
+    	if (months[i] < '0' || months[i] > '9'){
+            return 0;
+          }
+    }
+   	return 1;
+}
+
+void setDiscount(ClubMember* pMember) {
+  int seniority = pMember->totalMonths;
+
+  if (seniority > 0 && seniority < 24) {
+    pMember->discount = seniority * 0.1;
+  }
+  if (seniority < 60) {
+    pMember->discount = 2.5 + 0.5 * seniority / 12;
+  }
+  else {
+  	pMember->discount = 7.5;
+  }
+
 }
 
 void getCustomerID(Customer* pCustomer)
@@ -104,6 +179,10 @@ void printCustomer(const Customer* pCustomer)
 {
 	printf("Name: %s\n", pCustomer->name);
 	printf("ID: %s\n", pCustomer->id);
+    if (pCustomer->type == MEMBER){
+      ClubMember* pMember = (ClubMember*)pCustomer;
+      printf("Total months: %d\n", pMember->totalMonths);
+    }
 
 	if (pCustomer->pCart == NULL)
 		printf("Shopping cart is empty!\n");
