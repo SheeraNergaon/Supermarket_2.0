@@ -5,7 +5,7 @@
 #include "Customer.h"
 #include "General.h"
 
-int	initCustomer(Customer* pCustomer)
+int	initCustomer(Customer* pCustomer, const enum CustomerType type)
 {
 	char firstName[MAX_STR_LEN];
 	char lastName[MAX_STR_LEN];
@@ -26,17 +26,18 @@ int	initCustomer(Customer* pCustomer)
 	pCustomer->pCart = NULL;
 
 	getCustomerID(pCustomer);
-    getCustomerType(pCustomer);
-    if (pCustomer->type == MEMBER){
+	pCustomer->type = type;
+    if (type == MEMBER) {
       ClubMember* pMember = (ClubMember*)pCustomer;
-      getTotalMonths(pMember);
+      setTotalMonths(pMember);
+      setDiscount(pMember);
       }
 
 	return 1;
 	
 }
 
-void getCustomerType(Customer* pCustomer)
+void setCustomerType(Customer* pCustomer)
 {
  	 char choice;
      do {
@@ -59,7 +60,7 @@ void getCustomerType(Customer* pCustomer)
      } while (choice != 'N' && choice != 'n' && choice != 'Y' && choice != 'y');
 }
 
-void getTotalMonths(ClubMember* pMember) {
+void setTotalMonths(ClubMember* pMember) {
 	char temp[10];
 	char* newlinePos;
 	do {
@@ -88,6 +89,21 @@ int isValidMonths(char months[], int size){
           }
     }
    	return 1;
+}
+
+void setDiscount(ClubMember* pMember) {
+  int seniority = pMember->totalMonths;
+
+  if (seniority > 0 && seniority < 24) {
+    pMember->discount = seniority * 0.1;
+  }
+  if (seniority < 60) {
+    pMember->discount = 2.5 + 0.5 * seniority / 12;
+  }
+  else {
+  	pMember->discount = 7.5;
+  }
+
 }
 
 void getCustomerID(Customer* pCustomer)
@@ -229,3 +245,25 @@ void freeCustomer(Customer* pCust)
 	pCust->name = NULL;
 	pCust->pCart = NULL;
 }
+
+
+enum CustomerType getCustomerType(void) {
+	char choice;
+	do {
+		printf("Are you a club member? enter Y,y if yes, and N,n if no:\n");
+		choice = getchar();
+		while (getchar() != '\n');
+
+		switch (choice) {
+			case 'N':
+			case 'n':
+				return REGULAR;
+			case 'Y':
+			case 'y':
+				return MEMBER;
+			default:
+				printf("Invalid input, try again!\n");
+		}
+	} while (1);
+}
+

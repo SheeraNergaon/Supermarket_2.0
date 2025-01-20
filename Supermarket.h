@@ -46,3 +46,6 @@ void		freeMarket(SuperMarket* pMarket);
 void		freeProducts(SuperMarket* pMarket);
 void		freeCustomers(SuperMarket* pMarket);
 
+
+
+int allocateCustomerMemory(SuperMarket* pMarket, enum CustomerType type);

@@ -5,6 +5,7 @@
 #define NAMES_SEP " "
 #define NAME_PARTS_SEP "- "
 
+
 enum CustomerType {
 	REGULAR,
 	MEMBER
@@ -21,9 +22,10 @@ typedef struct
 typedef struct {
 	Customer customer;
 	int totalMonths;
+	float discount;
 }ClubMember;
 
-int		initCustomer(Customer* pCustomer);
+int		initCustomer(Customer* pCustomer, const enum CustomerType type);
 void	getCustomerID(Customer* pCustomer);
 void	printCustomer(const Customer* pCustomer);
 
@@ -41,9 +43,12 @@ void	cancelShopping(Customer* pCustomer);
 void	freeCustomer(Customer* pCust);
 
 
-void getCustomerType(Customer* pCustomer);
-void getTotalMonths(ClubMember* pMember);
+void setCustomerType(Customer* pCustomer);
+void setTotalMonths(ClubMember* pMember);
+void setDiscount(ClubMember* pMember);
 int isValidMonths(char months[], int size);
+void setDiscount(ClubMember* pMember);
 
+enum CustomerType getCustomerType(void);
 
 
