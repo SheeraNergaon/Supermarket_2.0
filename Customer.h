@@ -1,5 +1,6 @@
 #pragma once
 #include "ShoppingCart.h"
+#include "vtable.h"
 
 #define CUSTOMER_ID_LENGTH 9
 #define NAMES_SEP " "
@@ -11,21 +12,18 @@ enum CustomerType {
 	MEMBER
 };
 
-typedef struct
+typedef struct _Costumer
 {
 	char*			id;
 	char*			name;
 	ShoppingCart*	pCart;
+	void* pDerivedObject;
 	enum CustomerType type;
+	CustomerVTable table;
 }Customer;
 
-typedef struct {
-	Customer customer;
-	int totalMonths;
-	float discount;
-}ClubMember;
 
-int		initCustomer(Customer* pCustomer, const enum CustomerType type);
+int		initCustomer(Customer* pCustomer);
 void	getCustomerID(Customer* pCustomer);
 void	printCustomer(const Customer* pCustomer);
 
@@ -42,13 +40,8 @@ void	cancelShopping(Customer* pCustomer);
 
 void	freeCustomer(Customer* pCust);
 
+void initCustomerVTable(Customer* pCustomer);
+void printTotalPrice(const Customer* pCustomer);
 
-void setCustomerType(Customer* pCustomer);
-void setTotalMonths(ClubMember* pMember);
-void setDiscount(ClubMember* pMember);
-int isValidMonths(char months[], int size);
-void setDiscount(ClubMember* pMember);
-
-enum CustomerType getCustomerType(void);
 
 

@@ -5,11 +5,11 @@
 typedef enum
 {
 	eShowSuperMarket, eAddProduct, eAddCustomer, eCustomerDoShopping, ePrintCart, eCustomerManageShoppingCart,
-	ePrintProductByType, eNofOptions
+	ePrintProductByType,eSortByCategory, eSearchBySortedCategory,eNofOptions
 } eMenuOptions;
 
 const char* menuStrings[eNofOptions] = { "Show SuperMarket", "Add Product",
 								"Add Customer", "Customer Shopping","Print Shopping Cart","Customer Shopping Cart Managment",
-								"Print Product By Type" };;
+								"Print Product By Type","Sort Products By Category","Search product by sorted category"};;
 
 int menu();

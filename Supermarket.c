@@ -7,6 +7,7 @@
 #include "Customer.h"
 #include "General.h"
 #include "ShoppingCart.h"
+#include "ClubMember.h"
 
 
 int		initSuperMarket(SuperMarket* pMarket)
@@ -16,6 +17,7 @@ int		initSuperMarket(SuperMarket* pMarket)
 	pMarket->productCount = 0;
 	pMarket->productArr = NULL;
 	pMarket->name = getStrExactLength("Enter market name");
+	pMarket->sortCategory = UNSORTED; // Start as unsorted
 
 	if (!pMarket->name)
 		return 0;
@@ -67,7 +69,7 @@ int		addProduct(SuperMarket* pMarket)
 	}
 	else
 		return 0;
-	
+	pMarket->sortCategory = UNSORTED;
 	return 1;
 }
 
@@ -119,14 +121,7 @@ int isCustomerIdUnique(const SuperMarket* pMarket, const char* id)
 	{
 
 		const char* currentId;
-		if (pMarket->customerArr[i].type == MEMBER) {
-			const ClubMember* member = (const ClubMember*)&(pMarket->customerArr[i]);
-			currentId = member->customer.id;
-		}
-
-		else {
-			currentId = pMarket->customerArr[i].id;
-		}
+		currentId = pMarket->customerArr[i].id;
 
 		if (strcmp(currentId, id) == 0) {
 			printf("ID %s is not unique\n", id);
@@ -138,53 +133,49 @@ int isCustomerIdUnique(const SuperMarket* pMarket, const char* id)
 
 
 
-int		addCustomer(SuperMarket* pMarket)
+int	addCustomer(SuperMarket* pMarket)
 {
-	// Allocate enough space for either type
-	ClubMember tempMember = { 0 };  // Use ClubMember to ensure enough space
-	Customer* pCust = (Customer*)&tempMember;  // Access it as a Customer
-	enum CustomerType type = getCustomerType();
+	Customer customer;
+	int clubMember = 0;
 
-	do {
-		freeCustomer(pCust);
-		if (!initCustomer(pCust, type))
+	printf("Is the customer a club memeber? 1 for yes, 0 for no: ");
+	scanf(" %d", &clubMember);
+
+	do
+	{
+		if (clubMember == 1)
 		{
-			freeCustomer(pCust);
-			return 0;
+			if (!initClubMember(&customer))
+			{
+				return 0;
+			}
 		}
-	} while (!isCustomerIdUnique(pMarket, pCust->id));
+		else
+			if (!initCustomer(&customer))
+			{
+				return 0;
+			}
+	} while (!isCustomerIdUnique(pMarket, customer.id));
 
-	if (isCustomerInMarket(pMarket, pCust))
+	if (isCustomerInMarket(pMarket, &customer))
 	{
-		printf("This customer already in market\n");
-		free(pCust->name);
+		printf("This customer is already exist in market\n");
+		freeCustomer(&customer);
 		return 0;
 	}
-	// Allocate appropriate memory size based on customer type
-	size_t newSize;
-	if (type == MEMBER) {
-		newSize = (pMarket->customerCount + 1) * sizeof(ClubMember);
-	} else {
-		newSize = (pMarket->customerCount + 1) * sizeof(Customer);
-	}
 
-	Customer* temp = (Customer*)safeRealloc(pMarket->customerArr, newSize);
-	if (!temp)
+	pMarket->customerArr = (Customer*)safeRealloc(pMarket->customerArr,
+		(pMarket->customerCount + 1) * sizeof(Customer));
+
+	if (!pMarket->customerArr)
 	{
-		free(pCust->name);
+		freeCustomer(&customer);
 		return 0;
 	}
-	pMarket->customerArr = temp;
 
-	// Copy customer data, being careful with member data if applicable
-	if (type == MEMBER) {
-		ClubMember* pNewMember = (ClubMember*)&(pMarket->customerArr[pMarket->customerCount]);
-		*pNewMember = tempMember;
-	} else {
-		pMarket->customerArr[pMarket->customerCount] = *pCust;
-	}
-
+	pMarket->customerArr[pMarket->customerCount] = customer;
 	pMarket->customerCount++;
+
 	return 1;
 }
 
@@ -223,6 +214,7 @@ int	doShopping(SuperMarket* pMarket)
 
 Customer*	doPrintCart(SuperMarket* pMarket)
 {
+	float price;
 	Customer* pCustomer = getCustomerShopPay(pMarket);
 	if (!pCustomer)
 		return NULL;
@@ -230,8 +222,9 @@ Customer*	doPrintCart(SuperMarket* pMarket)
 	{
 		printf("Customer cart is empty\n");
 		return NULL;
-	}
-	printShoppingCart(pCustomer->pCart);
+	} 
+	price = printShoppingCart(pCustomer->pCart);
+	pCustomer->table.printPrice(pCustomer);
 	return pCustomer;
 }
 
@@ -299,7 +292,7 @@ void	printAllCustomers(const SuperMarket* pMarket)
 {
 	printf("There are %d listed customers\n", pMarket->customerCount);
 	for (int i = 0; i < pMarket->customerCount; i++)
-		printCustomer(&pMarket->customerArr[i]);
+		pMarket->customerArr[i].table.print(&pMarket->customerArr[i]);
 }
 
 
@@ -489,19 +482,125 @@ Customer* FindCustomerById(SuperMarket* pMarket, const char* id)
 }
 
 
-// Allocates appropriate memory based on customer type
-int allocateCustomerMemory(SuperMarket* pMarket, enum CustomerType type) {
-	size_t newSize;
-	if (type == MEMBER) {
-		newSize = (pMarket->customerCount + 1) * sizeof(ClubMember);
-	} else {
-		newSize = (pMarket->customerCount + 1) * sizeof(Customer);
+
+int compareByName(const void* a, const void* b) {
+	Product* prodA = *(Product**)a;
+	Product* prodB = *(Product**)b;
+	return strcmp(prodA->name, prodB->name); // Compare product names alphabetically
+}
+
+
+
+int compareByCount(const void* a, const void* b) {
+	Product* prodA = *(Product**)a;
+	Product* prodB = *(Product**)b;
+	return prodA->count - prodB->count; 
+}
+
+int compareByPrice(const void* a, const void* b) {
+	Product* prodA = *(Product**)a;
+	Product* prodB = *(Product**)b;
+
+	if (prodA->price < prodB->price)
+		return -1; // Return -1 if prodA is cheaper than prodB
+	else if (prodA->price > prodB->price)
+		return 1;  // Return 1 if prodA is more expensive than prodB
+	else
+		return 0;  // Return 0 if both prices are equal
+}
+
+int sortMenu() {
+	const char* sortMenuStrings[] = { "Sort by Name","Sort by Count","Sort by Price"};
+	int option;
+	printf("\n");
+	printf("How would you like to sort the products?\n");
+	for (int i = 0; i < eNofSortOptions; i++) {
+		printf("%d - %s\n", i, sortMenuStrings[i]);
+	}
+	printf("Enter your choice (0-%d): ", eNofSortOptions - 1);
+	scanf("%d", &option);
+
+	// Clean buffer
+	char tav;
+	scanf("%c", &tav);
+
+	return option;
+}
+
+
+void sortByCategory(SuperMarket* pMarket) {
+	int option = sortMenu();
+
+	switch (option) {
+	case 0:
+		pMarket->sortCategory = SORT_BY_NAME;
+		qsort(pMarket->productArr, pMarket->productCount, sizeof(Product*), compareByName);
+		break;
+
+	case 1:
+		pMarket->sortCategory = SORT_BY_COUNT;
+		qsort(pMarket->productArr, pMarket->productCount, sizeof(Product*), compareByCount);
+		break;
+
+	case 2:
+		pMarket->sortCategory = SORT_BY_PRICE;
+		qsort(pMarket->productArr, pMarket->productCount, sizeof(Product*), compareByPrice);
+		break;
+
+	default:
+		printf("Invalid choice. Products will remain unsorted.\n");
+		pMarket->sortCategory = UNSORTED;
+		break;
+	}
+}
+
+int searchBySortedType(SuperMarket* pMarket) {
+	if (!pMarket || !pMarket->productArr || pMarket->productCount <= 0) {
+		return 0; 
 	}
 
-	Customer* temp = (Customer*)safeRealloc(pMarket->customerArr, newSize);
-	if (!temp)
-		return 0;
+	Product tempProduct;         // Temporary product for search 
+	Product* pTempProduct = &tempProduct; // Pointer to pass to bsearch
+	Product** pFoundProduct = NULL; // Pointer to store the found product
 
-	pMarket->customerArr = temp;
-	return 1;
+	switch (pMarket->sortCategory) {
+	case UNSORTED:
+		printf("Products are not sorted.\n");
+		return 1;
+
+	case SORT_BY_NAME:
+		printf("The array is sorted by name. Please enter the name of the product to search:\n");
+		initProductName(&tempProduct); 
+		pFoundProduct = (Product**)bsearch(&pTempProduct,pMarket->productArr,pMarket->productCount,sizeof(Product*),compareByName
+		);
+		break;
+
+	case SORT_BY_COUNT:
+		printf("The array is sorted by count. Please enter the count of the product to search:\n");
+		tempProduct.count = getPositiveInt("Enter product count: ");
+		pFoundProduct = (Product**)bsearch(&pTempProduct,pMarket->productArr,pMarket->productCount,sizeof(Product*),compareByCount
+		);
+		break;
+
+	case SORT_BY_PRICE:
+		printf("The array is sorted by price. Please enter the price of the product to search:\n");
+		tempProduct.price = getPositiveFloat("Enter product price: ");
+		pFoundProduct = (Product**)bsearch(&pTempProduct,pMarket->productArr,pMarket->productCount,sizeof(Product*),compareByPrice
+		);
+		break;
+
+	default:
+		printf("Invalid sorting category.\n");
+		return 0; 
+	}
+
+	if (pFoundProduct) {
+		printf("Product found:\n");
+		printProduct(*pFoundProduct); 
+	}
+	else {
+		printf("Product not found.\n");
+	}
+
+	return 1; 
 }

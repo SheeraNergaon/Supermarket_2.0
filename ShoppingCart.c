@@ -13,8 +13,7 @@ void	initCart(ShoppingCart* pCart)
 
 float	getTotalPrice(const ShoppingCart* pCart)
 {
-	NODE* current = &(pCart->items.head);
-	current = current->next;
+	NODE* current = pCart->items.head.next;
 	float price = 0;
 	while (current) {
 		price += ((ShoppingItem*)current->key)->price * ((ShoppingItem*)current->key)->count;
@@ -54,14 +53,17 @@ int	 addItemToCart(ShoppingCart* pCart, const char* barcode, float price, int co
 
 
 
-float	printShoppingCart(const ShoppingCart* pCart){ // we will need to change anyway according to club member
+float	printShoppingCart(const ShoppingCart* pCart){ 
 
 	float price = 0;
 	L_print(&(pCart->items), printItem);
 	price = getTotalPrice(pCart);
-	printf("Total bill to pay: %.2f\n", price);
+	//printf("Total bill to pay: %.2f\n", price);
 	return price;
 }
+
+
+
 
 
 
