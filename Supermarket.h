@@ -2,6 +2,15 @@
 #include "Customer.h"
 #include "Product.h"
 #include "ShoppingCart.h"
+#define eNofSortOptions 3
+
+
+typedef enum {
+	UNSORTED,
+	SORT_BY_NAME,
+	SORT_BY_COUNT,
+	SORT_BY_PRICE
+} ProductSortCategory;
 
 typedef struct
 {
@@ -10,7 +19,10 @@ typedef struct
 	int			customerCount;
 	Product**	productArr;
 	int			productCount;
+	ProductSortCategory sortCategory;
 }SuperMarket;
+
+
 
 
 int			initSuperMarket(SuperMarket* pMarket);
@@ -48,4 +60,11 @@ void		freeCustomers(SuperMarket* pMarket);
 
 
 
-int allocateCustomerMemory(SuperMarket* pMarket, enum CustomerType type);
+
+int compareByName(const void* a, const void* b);
+int compareByCount(const void* a, const void* b);
+int compareByPrice(const void* a, const void* b);
+void sortByCategory(SuperMarket* pMarket);
+int sortMenu();
+
+int searchBySortedType(SuperMarket* pMarket);

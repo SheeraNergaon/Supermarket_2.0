@@ -20,6 +20,8 @@ typedef struct
 	Date			expiryDate;
 }Product;
 
+
+
 void			initProduct(Product* pProduct);
 void			initProductNoBarcode(Product* pProduct);
 void			initProductName(Product* pProduct);
