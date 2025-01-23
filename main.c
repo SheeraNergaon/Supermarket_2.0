@@ -5,6 +5,12 @@
 #include "main.h"
 #include "General.h"
 #include "Supermarket.h"
+#include "CustomerText.h"
+#include"SuperMarketBin.h"
+
+#define TEXT_FILE "Customers.txt"
+#define BIN_FILE "SuperMarket.bin"
+#define TEXT_TO_BIN
 
 int main()
 {
@@ -17,7 +23,6 @@ int main()
 		printf("error init Super Market");
 		return 0;
 	}
-
 	int option;
 	int stop = 0;
 	
@@ -72,8 +77,12 @@ int main()
 			printf("Wrong option\n");
 			break;
 		}
-	} while (!stop);
+	}while (!stop);
 
+
+	if (!writeToTextFile(&market, TEXT_FILE)) printf("Eror saving text file");
+
+	if (!writeSuperMarketToBin(&market, BIN_FILE)) printf("Eror saving bin file");
 
 	freeMarket(&market);
 	

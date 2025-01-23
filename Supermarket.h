@@ -1,4 +1,5 @@
 #pragma once
+#include <stdlib.h>
 #include "Customer.h"
 #include "Product.h"
 #include "ShoppingCart.h"

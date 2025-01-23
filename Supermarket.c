@@ -8,10 +8,20 @@
 #include "General.h"
 #include "ShoppingCart.h"
 #include "ClubMember.h"
+#include "SuperMarketBin.h"
+#include "CustomerText.h"
 
+#define TEXT_FILE "Customers.txt"
+#define BIN_FILE "SuperMarket.bin"
+#define TEXT_TO_BIN
 
 int		initSuperMarket(SuperMarket* pMarket)
 {
+	if (readCustomerArrFromTextFile(TEXT_FILE, pMarket) && readSuperMarketFromBinaryFile(pMarket, BIN_FILE)) { 
+		printf("Supermarket succesfully loaded from files:\n");
+		return 1;
+	}
+
 	pMarket->customerCount = 0;
 	pMarket->customerArr = NULL;
 	pMarket->productCount = 0;
@@ -27,6 +37,7 @@ int		initSuperMarket(SuperMarket* pMarket)
 
 void	printSuperMarket(const SuperMarket* pMarket)
 {
+
 	printf("Super Market Name: %s\t", pMarket->name);
 	printf("\n");
 	printAllProducts(pMarket);
@@ -100,6 +111,7 @@ int		addNewProduct(SuperMarket* pMarket)
 	
 	pMarket->productArr[pMarket->productCount] = pProd;
 	pMarket->productCount++;
+	pMarket->sortCategory = UNSORTED;
 	return 1;
 }
 
@@ -284,15 +296,15 @@ void	printAllProducts(const SuperMarket* pMarket)
 	printf("%-20s %-10s %-20s %-15s\n", "Type", "Price", "Count In Stoke", "Expiry Date");
 	printf("-------------------------------------------------------------------------------------------------\n");
 
-	for (int i = 0; i < pMarket->productCount; i++)
-		printProduct(pMarket->productArr[i]);
+	generalArrayFunction(pMarket->productArr, pMarket->productCount, sizeof(Product*), printProduct);
 }
 
 void	printAllCustomers(const SuperMarket* pMarket)
 {
 	printf("There are %d listed customers\n", pMarket->customerCount);
 	for (int i = 0; i < pMarket->customerCount; i++)
-		pMarket->customerArr[i].table.print(&pMarket->customerArr[i]);
+		printCustomer(&pMarket->customerArr[i]);
+	
 }
 
 
@@ -482,11 +494,25 @@ Customer* FindCustomerById(SuperMarket* pMarket, const char* id)
 }
 
 
-
 int compareByName(const void* a, const void* b) {
 	Product* prodA = *(Product**)a;
 	Product* prodB = *(Product**)b;
-	return strcmp(prodA->name, prodB->name); // Compare product names alphabetically
+
+	// Temporary lowercase versions of the strings
+	char* nameA = prodA->name;
+	char* nameB = prodB->name;
+	while (*nameA && *nameB) {
+		char lowerA = tolower(*nameA);
+		char lowerB = tolower(*nameB);
+
+		if (lowerA != lowerB) {
+			return (lowerA - lowerB);
+		}
+
+		nameA++;
+		nameB++;
+	}
+	return (tolower(*nameA) - tolower(*nameB));
 }
 
 
