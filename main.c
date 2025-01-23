@@ -58,15 +58,14 @@ int main()
 			if(!manageShoppingCart(&market))
 				printf("Error in shopping cart managment\n");
 			break;
-
-		case ePrintProductByType:
-			printProductByType(&market);
-			break;
 		case eSortByCategory:
 			sortByCategory(&market);
 			break;
 		case eSearchBySortedCategory:
 			searchBySortedType(&market);
+			break;
+		case ePrintProductByType:
+			printProductByType(&market);
 			break;
 		case EXIT:
 			printf("Bye bye\n");
