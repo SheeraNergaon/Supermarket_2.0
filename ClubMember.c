@@ -1,7 +1,7 @@
-#include "ClubMember.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "ClubMember.h"
 
 void setTotalMonths(ClubMember* pMember) {
     int totalMonths;
@@ -35,7 +35,6 @@ void printClubMember(const Customer* pCustomer) {
 
 int initClubMember(Customer* pCustomer) {
     if (!initCustomer(pCustomer)) return 0;
-    initClubMemberVTable(pCustomer);
 
     pCustomer->pDerivedObject = (ClubMember*)malloc(sizeof(ClubMember));
     if (!pCustomer->pDerivedObject)
@@ -52,7 +51,6 @@ int initClubMember(Customer* pCustomer) {
 
 }
 void initClubMemberVTable(Customer* pCustomer) {
-    pCustomer->table.init = initClubMember;
     pCustomer->table.print = printClubMember;
     pCustomer->table.delete = freeClubMember;
     pCustomer->table.printPrice = printTotalPriceMember;

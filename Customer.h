@@ -18,7 +18,6 @@ typedef struct _Costumer
 	char*			name;
 	ShoppingCart*	pCart;
 	void* pDerivedObject;
-	enum CustomerType type;
 	CustomerVTable table;
 }Customer;
 

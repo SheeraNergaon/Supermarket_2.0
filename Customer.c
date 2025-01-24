@@ -262,7 +262,6 @@ void freeCustomer(Customer* pCust)
 //}
 
 void initCustomerVTable(Customer* pCustomer) {
-	pCustomer->table.init = initCustomer;
 	pCustomer->table.print = printCustomer;
 	//pCustomer->table.payment = pay;
 	pCustomer->table.printPrice = printTotalPrice;
